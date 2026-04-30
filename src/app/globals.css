@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== CSS VARIABLES ДЛЯ ТЕМ ===== */
+:root, [data-theme="light"] {
+  --bg: #f2f2f7;
+  --surface: #ffffff;
+  --header: rgba(255,255,255,0.85);
+  --text: #1c1c1e;
+  --muted: #8e8e93;
+  --border: #e5e5ea;
+  --hover: rgba(0,0,0,0.05);
+  --accent: #007aff;
+  --accent2: #5856d6;
+  --radius: 16px;
+}
+
+[data-theme="dark"] {
+  --bg: #000000;
+  --surface: #1c1c1e;
+  --header: rgba(28,28,30,0.85);
+  --text: #ffffff;
+  --muted: #98989d;
+  --border: #38383a;
+  --hover: rgba(255,255,255,0.08);
+  --accent: #0a84ff;
+  --accent2: #5e5ce6;
+}
+
+[data-theme="midnight"] {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --header: rgba(15,23,42,0.85);
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --border: #334155;
+  --hover: rgba(255,255,255,0.06);
+  --accent: #7c3aed;
+  --accent2: #a78bfa;
+}
+
+[data-theme="lavender"] {
+  --bg: #f0e6ff;
+  --surface: #ffffff;
+  --header: rgba(240,230,255,0.85);
+  --text: #2d1b69;
+  --muted: #7c6faa;
+  --border: #e0d4f5;
+  --hover: rgba(124,58,237,0.08);
+  --accent: #7c3aed;
+  --accent2: #a78bfa;
+}
+
+/* ===== БАЗОВЫЕ СТИЛИ ===== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* ===== УТИЛИТЫ ===== */
+.font-sans { font-family: inherit; }
+.backdrop-blur-xl { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
