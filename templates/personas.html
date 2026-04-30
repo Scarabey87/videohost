@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Персоны - {{ site_name }}{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Наши AI-персоны</h1>
+
+{% if personas %}
+    <div class="grid grid-4">
+        {% for persona in personas %}
+            <div class="card persona-card" onclick="window.location='{{ url_for('persona_detail', slug=persona.slug) }}'" style="cursor: pointer;">
+                <div class="card-body">
+                    <img src="{{ url_for('serve_upload', filename='personas/' + persona.photo) }}" alt="{{ persona.name }}" class="persona-photo">
+                    <h3 class="card-title">{{ persona.name }}</h3>
+                    <p class="card-text" style="max-height: 60px; overflow: hidden;">{{ persona.description[:100] }}{% if persona.description|length > 100 %}...{% endif %}</p>
+                    {% if persona.is_vip %}
+                        <span class="vip-badge">VIP Персона</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div style="text-align: center; padding: 60px 0;">
+        <p style="color: var(--text-secondary); font-size: 18px;">Персоны скоро появятся!</p>
+    </div>
+{% endif %}
+{% endblock %}

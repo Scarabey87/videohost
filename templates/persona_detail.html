@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}{{ persona.name }} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 48px;">
+    <img src="{{ url_for('serve_upload', filename='personas/' + persona.photo) }}" alt="{{ persona.name }}" 
+         style="width: 200px; height: 200px; border-radius: 50%; object-fit: cover; border: 4px solid var(--border); margin-bottom: 24px;">
+    <h1 class="page-title" style="margin-bottom: 16px;">{{ persona.name }}</h1>
+    {% if persona.is_vip %}
+        <span class="vip-badge" style="font-size: 14px; padding: 6px 12px;">VIP Персона</span>
+    {% endif %}
+    {% if persona.description %}
+        <p style="max-width: 600px; margin: 24px auto; color: var(--text-secondary); line-height: 1.6;">{{ persona.description }}</p>
+    {% endif %}
+</div>
+
+{% if videos %}
+    <h2 class="page-title" style="font-size: 24px;">Видео с {{ persona.name }}</h2>
+    
+    <div class="grid grid-4">
+        {% for video in videos %}
+            <div class="card video-card {% if video.is_vip and (not current_user.is_authenticated or not current_user.is_vip) %}vip-blur{% endif %}" 
+                 onclick="{% if video.is_vip and (not current_user.is_authenticated or not current_user.is_vip) %}window.location='{{ url_for('vip') }}'{% else %}window.location='{{ url_for('watch_video', video_id=video.id) }}'{% endif %}"
+                 style="cursor: pointer;">
+                
+                <img src="{{ url_for('serve_upload', filename='previews/' + video.preview) }}" alt="{{ video.title }}" class="card-img">
+                
+                {% if video.is_vip and (not current_user.is_authenticated or not current_user.is_vip) %}
+                    <div class="lock-overlay">
+                        <div class="lock-icon">🔒</div>
+                        <div style="font-weight: 600; margin-bottom: 8px;">Требуется VIP</div>
+                        <button class="btn btn-primary" onclick="event.stopPropagation(); window.location='{{ url_for('vip') }}'">Оформить VIP</button>
+                    </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <h3 class="card-title">{{ video.title }}</h3>
+                    <div class="video-meta">
+                        <span>{{ video.views }} просмотров</span>
+                        <span>{{ video.created_at.strftime('%d.%m.%Y') }}</span>
+                    </div>
+                    {% if video.is_vip %}
+                        <span class="vip-badge" style="margin-top: 8px;">VIP</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div style="text-align: center; padding: 60px 0;">
+        <p style="color: var(--text-secondary); font-size: 18px;">Видео с этой персоной пока нет</p>
+    </div>
+{% endif %}
+
+<a href="{{ url_for('personas') }}" class="btn btn-secondary" style="display: inline-block; margin-top: 32px;">← Все персоны</a>
+{% endblock %}

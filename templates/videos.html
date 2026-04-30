@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Видео - {{ site_name }}{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Каталог видео</h1>
+
+<!-- Filters -->
+<div class="filters">
+    <form method="GET" action="{{ url_for('videos') }}" style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <select name="persona" onchange="this.form.submit()">
+            <option value="">Все персоны</option>
+            {% for persona in personas %}
+                <option value="{{ persona.id }}" {% if selected_persona == persona.id %}selected{% endif %}>{{ persona.name }}</option>
+            {% endfor %}
+        </select>
+        
+        <select name="vip" onchange="this.form.submit()">
+            <option value="">Все видео</option>
+            <option value="1" {% if request.args.get('vip') == '1' %}selected{% endif %}>VIP</option>
+            <option value="0" {% if request.args.get('vip') == '0' %}selected{% endif %}>Бесплатные</option>
+        </select>
+        
+        <input type="text" name="category" placeholder="Категория" value="{{ selected_category }}" style="min-width: 150px;">
+        
+        <button type="submit" class="btn btn-primary">Применить</button>
+        <a href="{{ url_for('videos') }}" class="btn btn-secondary">Сбросить</a>
+    </form>
+</div>
+
+<!-- Videos Grid -->
+{% if pagination.items %}
+    <div class="grid grid-4">
+        {% for video in pagination.items %}
+            <div class="card video-card {% if video.is_vip and (not current_user.is_authenticated or not current_user.is_vip) %}vip-blur{% endif %}" 
+                 onclick="{% if video.is_vip and (not current_user.is_authenticated or not current_user.is_vip) %}window.location='{{ url_for('vip') }}'{% else %}window.location='{{ url_for('watch_video', video_id=video.id) }}'{% endif %}"
+                 style="cursor: pointer;">
+                
+                <img src="{{ url_for('serve_upload', filename='previews/' + video.preview) }}" alt="{{ video.title }}" class="card-img">
+                
+                {% if video.is_vip and (not current_user.is_authenticated or not current_user.is_vip) %}
+                    <div class="lock-overlay">
+                        <div class="lock-icon">🔒</div>
+                        <div style="font-weight: 600; margin-bottom: 8px;">Требуется VIP</div>
+                        <button class="btn btn-primary" onclick="event.stopPropagation(); window.location='{{ url_for('vip') }}'">Оформить VIP</button>
+                    </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <h3 class="card-title">{{ video.title }}</h3>
+                    {% if video.persona %}
+                        <p class="card-text">{{ video.persona.name }}</p>
+                    {% endif %}
+                    <div class="video-meta">
+                        <span>{{ video.views }} просмотров</span>
+                        <span>{{ video.created_at.strftime('%d.%m.%Y') }}</span>
+                    </div>
+                    {% if video.is_vip %}
+                        <span class="vip-badge" style="margin-top: 8px;">VIP</span>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+        <div class="pagination">
+            {% if pagination.has_prev %}
+                <a href="{{ url_for('videos', page=pagination.prev_num, persona=selected_persona, vip=request.args.get('vip'), category=selected_category) }}">← Назад</a>
+            {% endif %}
+            
+            {% for page_num in pagination.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num == pagination.page %}
+                        <span class="current">{{ page_num }}</span>
+                    {% else %}
+                        <a href="{{ url_for('videos', page=page_num, persona=selected_persona, vip=request.args.get('vip'), category=selected_category) }}">{{ page_num }}</a>
+                    {% endif %}
+                {% else %}
+                    <span>...</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if pagination.has_next %}
+                <a href="{{ url_for('videos', page=pagination.next_num, persona=selected_persona, vip=request.args.get('vip'), category=selected_category) }}">Вперёд →</a>
+            {% endif %}
+        </div>
+    {% endif %}
+{% else %}
+    <div style="text-align: center; padding: 60px 0;">
+        <p style="color: var(--text-secondary); font-size: 18px;">Видео не найдено</p>
+        <a href="{{ url_for('videos') }}" class="btn btn-secondary" style="margin-top: 16px;">Сбросить фильтры</a>
+    </div>
+{% endif %}
+{% endblock %}

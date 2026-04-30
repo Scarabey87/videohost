@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Вход - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 0 auto; padding: 40px 0;">
+    <h1 class="page-title" style="text-align: center; font-size: 32px;">Вход</h1>
+    <p class="page-subtitle" style="text-align: center;">Войдите в свой аккаунт</p>
+    
+    <form method="POST" action="{{ url_for('login') }}" style="margin-top: 32px;">
+        <div class="form-group">
+            <label for="username" class="form-label">Имя пользователя</label>
+            <input type="text" id="username" name="username" class="form-control" required placeholder="Введите имя">
+        </div>
+        
+        <div class="form-group">
+            <label for="password" class="form-label">Пароль</label>
+            <input type="password" id="password" name="password" class="form-control" required placeholder="Введите пароль">
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 16px; margin-top: 24px;">Войти</button>
+    </form>
+    
+    <p style="text-align: center; margin-top: 24px; color: var(--text-secondary);">
+        Нет аккаунта? <a href="{{ url_for('register') }}" style="color: var(--accent); text-decoration: none;">Зарегистрироваться</a>
+    </p>
+</div>
+{% endblock %}

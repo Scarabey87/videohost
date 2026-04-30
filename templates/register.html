@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 400px; margin: 0 auto; padding: 40px 0;">
+    <h1 class="page-title" style="text-align: center; font-size: 32px;">Регистрация</h1>
+    <p class="page-subtitle" style="text-align: center;">Создайте аккаунт для доступа ко всем функциям</p>
+    
+    <form method="POST" action="{{ url_for('register') }}" style="margin-top: 32px;">
+        <div class="form-group">
+            <label for="username" class="form-label">Имя пользователя</label>
+            <input type="text" id="username" name="username" class="form-control" required minlength="3" placeholder="Придумайте имя">
+        </div>
+        
+        <div class="form-group">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" id="email" name="email" class="form-control" required placeholder="example@mail.com">
+        </div>
+        
+        <div class="form-group">
+            <label for="password" class="form-label">Пароль</label>
+            <input type="password" id="password" name="password" class="form-control" required minlength="8" placeholder="Минимум 8 символов">
+        </div>
+        
+        <div class="form-group">
+            <label for="confirm_password" class="form-label">Подтверждение пароля</label>
+            <input type="password" id="confirm_password" name="confirm_password" class="form-control" required minlength="8" placeholder="Повторите пароль">
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 16px; margin-top: 24px;">Зарегистрироваться</button>
+    </form>
+    
+    <p style="text-align: center; margin-top: 24px; color: var(--text-secondary);">
+        Уже есть аккаунт? <a href="{{ url_for('login') }}" style="color: var(--accent); text-decoration: none;">Войти</a>
+    </p>
+</div>
+{% endblock %}

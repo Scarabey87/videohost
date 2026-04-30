@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Админ-панель - {{ site_name }}{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Панель администратора</h1>
+
+<!-- Stats -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ total_users }}</div>
+        <div class="stat-label">Пользователей</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ vip_users }}</div>
+        <div class="stat-label">VIP пользователей</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_videos }}</div>
+        <div class="stat-label">Видео</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ total_views }}</div>
+        <div class="stat-label">Просмотров</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+    <!-- Recent Registrations -->
+    <div class="card" style="padding: 24px;">
+        <h2 style="font-size: 18px; margin-bottom: 16px;">Новые пользователи</h2>
+        {% if recent_registrations %}
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                {% for user in recent_registrations %}
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <img src="{{ url_for('serve_upload', filename='avatars/' + user.avatar) }}" 
+                             alt="{{ user.username }}" 
+                             style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                        <div>
+                            <div style="font-weight: 500;">{{ user.username }}</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">{{ user.created_at.strftime('%d.%m.%Y') }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--text-secondary);">Нет новых регистраций</p>
+        {% endif %}
+    </div>
+    
+    <!-- Popular Videos -->
+    <div class="card" style="padding: 24px;">
+        <h2 style="font-size: 18px; margin-bottom: 16px;">Популярные видео</h2>
+        {% if popular_videos %}
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                {% for video in popular_videos %}
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <img src="{{ url_for('serve_upload', filename='previews/' + video.preview) }}" 
+                             alt="{{ video.title }}" 
+                             style="width: 60px; height: 40px; object-fit: cover; border-radius: 6px;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500; font-size: 14px;">{{ video.title }}</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">{{ video.views }} просмотров</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: var(--text-secondary);">Нет видео</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div style="margin-top: 32px;">
+    <h2 class="page-title" style="font-size: 20px;">Быстрый доступ</h2>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px;">
+        <a href="{{ url_for('admin_videos') }}" class="btn btn-primary">Управление видео</a>
+        <a href="{{ url_for('upload_video') }}" class="btn btn-primary">Загрузить видео</a>
+        <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">Пользователи</a>
+        <a href="{{ url_for('admin_personas') }}" class="btn btn-secondary">Персоны</a>
+        <a href="{{ url_for('admin_logs') }}" class="btn btn-secondary">Логи</a>
+        <a href="{{ url_for('admin_settings') }}" class="btn btn-secondary">Настройки</a>
+    </div>
+</div>
+{% endblock %}
