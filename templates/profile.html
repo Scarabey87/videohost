@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Профиль - {{ current_user.username }} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div style="display: flex; gap: 32px; flex-wrap: wrap;">
+    <!-- Profile Info -->
+    <div style="flex: 1; min-width: 300px;">
+        <div class="card" style="padding: 32px;">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <img src="{{ url_for('serve_upload', filename='avatars/' + current_user.avatar) }}" 
+                     alt="{{ current_user.username }}" 
+                     style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--border);">
+            </div>
+            
+            <h1 class="page-title" style="text-align: center; font-size: 24px;">{{ current_user.username }}</h1>
+            
+            {% if current_user.is_vip and (not current_user.vip_expires or current_user.vip_expires > now()) %}
+                <div style="text-align: center; margin-bottom: 16px;">
+                    <span class="vip-badge" style="font-size: 14px; padding: 6px 16px;">VIP активен</span>
+                </div>
+                {% if current_user.vip_expires %}
+                    <p style="text-align: center; color: var(--text-secondary); font-size: 14px;">
+                        Действует до {{ current_user.vip_expires.strftime('%d.%m.%Y') }}
+                    </p>
+                {% endif %}
+            {% else %}
+                <div style="text-align: center; margin-bottom: 16px;">
+                    <a href="{{ url_for('vip') }}" class="btn btn-primary" style="padding: 8px 24px;">Оформить VIP</a>
+                </div>
+            {% endif %}
+            
+            <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border);">
+                <div style="margin-bottom: 12px;">
+                    <strong style="color: var(--text-secondary); font-size: 14px;">Email:</strong>
+                    <p>{{ current_user.email }}</p>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <strong style="color: var(--text-secondary); font-size: 14px;">Дата регистрации:</strong>
+                    <p>{{ current_user.created_at.strftime('%d.%m.%Y') }}</p>
+                </div>
+                {% if current_user.is_admin %}
+                    <div style="margin-bottom: 12px;">
+                        <span class="vip-badge" style="background: linear-gradient(135deg, #ff6b6b, #ee5a5a);">Администратор</span>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div style="margin-top: 24px;">
+                <a href="{{ url_for('edit_profile') }}" class="btn btn-secondary" style="width: 100%; text-align: center; margin-bottom: 12px;">Редактировать профиль</a>
+                {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary" style="width: 100%; text-align: center;">Панель администратора</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Activity -->
+    <div style="flex: 2; min-width: 300px;">
+        <!-- View History -->
+        <div class="card" style="padding: 24px; margin-bottom: 24px;">
+            <h2 style="font-size: 20px; margin-bottom: 16px;">История просмотров</h2>
+            
+            {% if view_history %}
+                <div style="display: grid; gap: 12px;">
+                    {% for log in view_history %}
+                        <a href="{{ url_for('watch_video', video_id=log.video.id) }}" 
+                           style="display: flex; gap: 12px; align-items: center; text-decoration: none; color: var(--text-primary); padding: 12px; background: var(--bg-secondary); border-radius: 8px; transition: background 0.2s;"
+                           onmouseover="this.style.background='var(--border)'" onmouseout="this.style.background='var(--bg-secondary)'">
+                            <img src="{{ url_for('serve_upload', filename='previews/' + log.video.preview) }}" 
+                                 alt="{{ log.video.title }}" 
+                                 style="width: 80px; height: 60px; object-fit: cover; border-radius: 6px;">
+                            <div style="flex: 1;">
+                                <h4 style="font-size: 14px; margin-bottom: 4px;">{{ log.video.title }}</h4>
+                                <p style="font-size: 12px; color: var(--text-secondary);">{{ log.watched_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color: var(--text-secondary);">Вы ещё не смотрели видео</p>
+            {% endif %}
+        </div>
+        
+        <!-- Uploaded Videos (for admins) -->
+        {% if current_user.is_admin and uploaded_videos %}
+            <div class="card" style="padding: 24px;">
+                <h2 style="font-size: 20px; margin-bottom: 16px;">Загруженные видео</h2>
+                
+                <div style="display: grid; gap: 12px;">
+                    {% for video in uploaded_videos %}
+                        <div style="display: flex; gap: 12px; align-items: center; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
+                            <img src="{{ url_for('serve_upload', filename='previews/' + video.preview) }}" 
+                                 alt="{{ video.title }}" 
+                                 style="width: 80px; height: 60px; object-fit: cover; border-radius: 6px;">
+                            <div style="flex: 1;">
+                                <h4 style="font-size: 14px; margin-bottom: 4px;">{{ video.title }}</h4>
+                                <p style="font-size: 12px; color: var(--text-secondary);">{{ video.views }} просмотров</p>
+                            </div>
+                            <a href="{{ url_for('edit_video', video_id=video.id) }}" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Ред.</a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

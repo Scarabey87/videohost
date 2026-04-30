@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section style="text-align: center; padding: 60px 0; margin-bottom: 48px;">
+    <h1 class="page-title" style="font-size: 48px; margin-bottom: 16px;">Добро пожаловать на {{ site_name }}</h1>
+    <p class="page-subtitle" style="font-size: 20px; max-width: 600px; margin: 0 auto;">
+        Платформа для просмотра эксклюзивного видео-контента с AI-персонами. 
+        Откройте для себя новый уровень развлечений.
+    </p>
+    <div style="margin-top: 32px;">
+        {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary" style="padding: 12px 32px; font-size: 16px;">Начать бесплатно</a>
+            <a href="{{ url_for('videos') }}" class="btn btn-secondary" style="padding: 12px 32px; font-size: 16px; margin-left: 12px;">Смотреть видео</a>
+        {% else %}
+            <a href="{{ url_for('videos') }}" class="btn btn-primary" style="padding: 12px 32px; font-size: 16px;">Смотреть видео</a>
+            {% if not current_user.is_vip %}
+                <a href="{{ url_for('vip') }}" class="btn btn-secondary" style="padding: 12px 32px; font-size: 16px; margin-left: 12px;">Оформить VIP</a>
+            {% endif %}
+        {% endif %}
+    </div>
+</section>
+
+<!-- Popular Videos -->
+<section style="margin-bottom: 64px;">
+    <h2 class="page-title">Популярные видео</h2>
+    
+    {% if videos %}
+        <div class="grid grid-4">
+            {% for video in videos %}
+                <div class="card video-card {% if video.is_vip and (not current_user.is_authenticated or not current_user.is_vip) %}vip-blur{% endif %}" 
+                     onclick="{% if video.is_vip and (not current_user.is_authenticated or not current_user.is_vip) %}window.location='{{ url_for('vip') }}'{% else %}window.location='{{ url_for('watch_video', video_id=video.id) }}'{% endif %}"
+                     style="cursor: pointer;">
+                    
+                    <img src="{{ url_for('serve_upload', filename='previews/' + video.preview) }}" alt="{{ video.title }}" class="card-img">
+                    
+                    {% if video.is_vip and (not current_user.is_authenticated or not current_user.is_vip) %}
+                        <div class="lock-overlay">
+                            <div class="lock-icon">🔒</div>
+                            <div style="font-weight: 600; margin-bottom: 8px;">Требуется VIP</div>
+                            <button class="btn btn-primary" onclick="event.stopPropagation(); window.location='{{ url_for('vip') }}'">Оформить VIP</button>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h3 class="card-title">{{ video.title }}</h3>
+                        {% if video.persona %}
+                            <p class="card-text">{{ video.persona.name }}</p>
+                        {% endif %}
+                        <div class="video-meta">
+                            <span>{{ video.views }} просмотров</span>
+                            <span>{{ video.created_at.strftime('%d.%m.%Y') }}</span>
+                        </div>
+                        {% if video.is_vip %}
+                            <span class="vip-badge" style="margin-top: 8px;">VIP</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div style="text-align: center; margin-top: 32px;">
+            <a href="{{ url_for('videos') }}" class="btn btn-secondary">Все видео</a>
+        </div>
+    {% else %}
+        <p style="text-align: center; color: var(--text-secondary); padding: 40px 0;">Видео пока нет. Заходите позже!</p>
+    {% endif %}
+</section>
+
+<!-- Personas -->
+<section style="margin-bottom: 64px;">
+    <h2 class="page-title">Наши персоны</h2>
+    
+    {% if personas %}
+        <div class="grid grid-4">
+            {% for persona in personas %}
+                <div class="card persona-card" onclick="window.location='{{ url_for('persona_detail', slug=persona.slug) }}'" style="cursor: pointer;">
+                    <div class="card-body">
+                        <img src="{{ url_for('serve_upload', filename='personas/' + persona.photo) }}" alt="{{ persona.name }}" class="persona-photo">
+                        <h3 class="card-title">{{ persona.name }}</h3>
+                        <p class="card-text" style="max-height: 60px; overflow: hidden;">{{ persona.description[:100] }}{% if persona.description|length > 100 %}...{% endif %}</p>
+                        {% if persona.is_vip %}
+                            <span class="vip-badge">VIP Персона</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div style="text-align: center; margin-top: 32px;">
+            <a href="{{ url_for('personas') }}" class="btn btn-secondary">Все персоны</a>
+        </div>
+    {% else %}
+        <p style="text-align: center; color: var(--text-secondary); padding: 40px 0;">Персоны скоро появятся!</p>
+    {% endif %}
+</section>
+
+<!-- Features -->
+<section style="background: var(--bg-secondary); padding: 48px 24px; border-radius: 16px; margin-bottom: 64px;">
+    <h2 class="page-title" style="text-align: center;">Преимущества платформы</h2>
+    
+    <div class="grid grid-3" style="margin-top: 32px;">
+        <div style="text-align: center; padding: 24px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🎬</div>
+            <h3 style="font-size: 18px; margin-bottom: 8px;">Эксклюзивный контент</h3>
+            <p style="color: var(--text-secondary);">Уникальные видео с AI-персонами, которые вы не найдёте больше нигде</p>
+        </div>
+        
+        <div style="text-align: center; padding: 24px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">✨</div>
+            <h3 style="font-size: 18px; margin-bottom: 8px;">Высокое качество</h3>
+            <p style="color: var(--text-secondary);">Все видео доступны в максимальном качестве без сжатия</p>
+        </div>
+        
+        <div style="text-align: center; padding: 24px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🔒</div>
+            <h3 style="font-size: 18px; margin-bottom: 8px;">Безопасность</h3>
+            <p style="color: var(--text-secondary);">Ваши данные под надёжной защитой, конфиденциальность гарантирована</p>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+{% if not current_user.is_authenticated %}
+<section style="text-align: center; padding: 48px 24px; background: linear-gradient(135deg, var(--accent), #5ac8fa); border-radius: 16px; color: white;">
+    <h2 style="font-size: 32px; margin-bottom: 16px;">Готовы начать?</h2>
+    <p style="font-size: 18px; margin-bottom: 24px; opacity: 0.9;">Зарегистрируйтесь бесплатно и получите доступ к контенту</p>
+    <a href="{{ url_for('register') }}" class="btn" style="background: white; color: var(--accent); padding: 12px 32px; font-size: 16px;">Создать аккаунт</a>
+</section>
+{% endif %}
+{% endblock %}

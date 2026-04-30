@@ -1,0 +1,31 @@
+```
+# Logs
+*.log
+
+# Database
+instance/*.db
+
+# Environment
+.env
+.env.local
+.env.*
+
+# Dependencies
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Editors
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Coverage
+.coverage
+htmlcov/
+coverage/
+```

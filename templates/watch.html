@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}{{ video.title }} - {{ site_name }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <!-- Video Player -->
+    <div style="background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 24px;">
+        <video id="videoPlayer" controls preload="metadata" 
+               poster="{{ url_for('serve_upload', filename='previews/' + video.preview) }}"
+               style="width: 100%; max-height: 80vh; display: block;"
+               playsinline>
+            <source src="{{ url_for('serve_upload', filename='videos/' + video.filename) }}" type="video/mp4">
+            Ваш браузер не поддерживает воспроизведение видео.
+        </video>
+    </div>
+    
+    <!-- Video Info -->
+    <div style="margin-bottom: 32px;">
+        <h1 class="page-title" style="font-size: 28px; margin-bottom: 12px;">{{ video.title }}</h1>
+        
+        <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 16px;">
+            {% if video.persona %}
+                <a href="{{ url_for('persona_detail', slug=video.persona.slug) }}" 
+                   style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-primary);">
+                    <img src="{{ url_for('serve_upload', filename='personas/' + video.persona.photo) }}" 
+                         alt="{{ video.persona.name }}" 
+                         style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">
+                    <span style="font-weight: 500;">{{ video.persona.name }}</span>
+                </a>
+            {% endif %}
+            
+            {% if video.is_vip %}
+                <span class="vip-badge">VIP</span>
+            {% endif %}
+        </div>
+        
+        <div style="display: flex; gap: 24px; color: var(--text-secondary); font-size: 14px; flex-wrap: wrap;">
+            <span>👁️ {{ video.views }} просмотров</span>
+            <span>📅 {{ video.created_at.strftime('%d.%m.%Y в %H:%M') }}</span>
+            {% if video.duration %}
+                <span>⏱️ {{ (video.duration / 60)|int }}:{{ '%02d'|format((video.duration % 60)|int) }}</span>
+            {% endif %}
+        </div>
+        
+        {% if video.description %}
+            <div style="margin-top: 24px; padding: 20px; background: var(--bg-secondary); border-radius: 12px;">
+                <h3 style="font-size: 16px; margin-bottom: 8px;">Описание</h3>
+                <p style="color: var(--text-secondary); line-height: 1.6;">{{ video.description }}</p>
+            </div>
+        {% endif %}
+    </div>
+    
+    <!-- Recommendations -->
+    {% if recommendations %}
+        <section>
+            <h2 class="page-title" style="font-size: 24px; margin-bottom: 24px;">Рекомендуем посмотреть</h2>
+            
+            <div class="grid grid-4">
+                {% for rec_video in recommendations %}
+                    <div class="card video-card {% if rec_video.is_vip and (not current_user.is_authenticated or not current_user.is_vip) %}vip-blur{% endif %}" 
+                         onclick="{% if rec_video.is_vip and (not current_user.is_authenticated or not current_user.is_vip) %}window.location='{{ url_for('vip') }}'{% else %}window.location='{{ url_for('watch_video', video_id=rec_video.id) }}'{% endif %}"
+                         style="cursor: pointer;">
+                        
+                        <img src="{{ url_for('serve_upload', filename='previews/' + rec_video.preview) }}" alt="{{ rec_video.title }}" class="card-img">
+                        
+                        {% if rec_video.is_vip and (not current_user.is_authenticated or not current_user.is_vip) %}
+                            <div class="lock-overlay">
+                                <div class="lock-icon">🔒</div>
+                                <div style="font-weight: 600;">Требуется VIP</div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <h3 class="card-title">{{ rec_video.title }}</h3>
+                            {% if rec_video.persona %}
+                                <p class="card-text">{{ rec_video.persona.name }}</p>
+                            {% endif %}
+                            <div class="video-meta">
+                                <span>{{ rec_video.views }} просмотров</span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('videoPlayer');
+    
+    // Track view start
+    video.addEventListener('play', function() {
+        fetch('/api/video/started/{{ video.id }}', { method: 'POST' });
+    });
+    
+    // Track view completion
+    video.addEventListener('ended', function() {
+        fetch('/api/video/completed/{{ video.id }}', { method: 'POST' });
+    });
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.target.tagName !== 'INPUT') {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                if (video.paused) {
+                    video.play();
+                } else {
+                    video.pause();
+                }
+            } else if (e.code === 'KeyF') {
+                e.preventDefault();
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    video.requestFullscreen();
+                }
+            } else if (e.code === 'ArrowRight') {
+                video.currentTime += 10;
+            } else if (e.code === 'ArrowLeft') {
+                video.currentTime -= 10;
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
