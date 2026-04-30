@@ -1,20 +1,28 @@
-"use server";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+"use server"
 
-export async function votePoll(optionId: string) {
-  const session = await auth();
-  if (!session?.user?.id) throw new Error("Авторизуйтесь");
+import { db } from "@/lib/db"
+import { revalidatePath } from "next/cache"
 
-  const existing = await db.pollVote.findFirst({
-    where: { userId: session.user.id }
-  });
-  if (existing) throw new Error("Вы уже голосовали");
+export async function submitPollTag(text: string) {
+  if (!text || text.trim().length < 2) {
+    throw new Error("Тег должен содержать минимум 2 символа")
+  }
 
-  await db.pollVote.create({
-    data: { userId: session.user.id, optionId }
-  });
-  await db.pollOption.update({ where: { id: optionId }, data: { votes: { increment: 1 } } });
-  revalidatePath("/");
+  await db.pollTag.create({
+    data: {
+      text: text.trim(),
+      votes: 1
+    }
+  })
+
+  revalidatePath("/")
+  return { success: true }
+}
+
+// Только для админки: получить все теги
+export async function getPollTags() {
+  return await db.pollTag.findMany({
+    orderBy: { votes: "desc" },
+    take: 50
+  })
 }

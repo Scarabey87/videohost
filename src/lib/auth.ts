@@ -1,57 +1,88 @@
-import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import { db } from "./db";
-import { loginLimiter } from "./rate-limit";
+// src/lib/auth.ts
+import NextAuth from "next-auth"
+import Credentials from "next-auth/providers/credentials"
+import { PrismaAdapter } from "@auth/prisma-adapter"
+import { db } from "./db"
+import bcrypt from "bcryptjs"
 
-export const { auth, signIn, signOut } = NextAuth({
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  adapter: PrismaAdapter(db),
+  
   providers: [
     Credentials({
-      credentials: { username: {}, password: {} },
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
       async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) return null;
-
-        // Rate limit: 5 попыток/15 мин по IP
-        const ip = (await headers()).get("x-real-ip") || "unknown";
-        await loginLimiter.consume(ip, 5, 900000);
-
-        const user = await db.user.findUnique({
-          where: { username: credentials.username as string },
-          include: { subscriptions: { where: { isActive: true, expiresAt: { gt: new Date() } } } }
-        });
-
-        if (!user || !(await bcrypt.compare(credentials.password as string, user.passwordHash))) {
-          throw new Error("Неверный логин или пароль");
+        if (!credentials?.email || !credentials?.password) {
+          return null
         }
 
-        if (user.role === "BANNED") throw new Error("Аккаунт заблокирован");
+        const user = await db.user.findUnique({
+          where: { email: credentials.email as string },
+          select: { id: true, email: true, passwordHash: true, role: true }
+        })
+
+        if (!user) return null
+
+        const isValid = await bcrypt.compare(
+          credentials.password as string,
+          user.passwordHash
+        )
+
+        if (!isValid) return null
 
         return {
           id: user.id,
-          username: user.username,
           email: user.email,
           role: user.role,
-          isVip: user.subscriptions.length > 0
-        };
-      }
-    })
+        }
+      },
+    }),
   ],
-  pages: { signIn: "/login", error: "/login" },
-  session: { strategy: "jwt", maxAge: 86400 },
+
+  pages: {
+    signIn: "/login",
+    error: "/login",
+  },
+
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 дней
+  },
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id;
-        token.role = user.role;
-        token.isVip = user.isVip;
+        token.id = user.id
+        token.role = user.role
       }
-      return token;
+      return token
     },
     async session({ session, token }) {
-      session.user.id = token.id as string;
-      session.user.role = token.role as string;
-      session.user.isVip = token.isVip as boolean;
-      return session;
-    }
-  }
-});
+      if (session.user) {
+        session.user.id = token.id as string
+        session.user.role = token.role as string
+      }
+      return session
+    },
+  },
+
+  // Безопасность
+  cookies: {
+    sessionToken: {
+      name: `__Secure-authjs.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
+      },
+    },
+  },
+
+  // Логирование (отключите в production)
+  debug: process.env.NODE_ENV === "development",
+})

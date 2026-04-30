@@ -8,106 +8,40 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  username      String   @unique
-  email         String   @unique
-  passwordHash  String
-  role          String   @default("USER") // USER, ADMIN
-  avatar        String?
-  bio           String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  videos        Video[]
-  views         View[]
-  subscriptions Subscription[]
-  votes         PollVote[]
-  messages      Message[]
-  loginLogs     LoginLog[]
-}
-
-model Person {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  avatar      String?
-  description String?
-  isVip       Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  videos      Video[]
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("USER") // USER, ADMIN
+  createdAt    DateTime @default(now())
+  videos       Video[]
+  messages     Message[]
 }
 
 model Video {
   id          String   @id @default(cuid())
   title       String
   description String?
-  preview     String?
-  filePath    String   // S3/R2 key или Mux playbackId
-  duration    Int      // секунды
+  filePath    String   // Относительный путь к файлу
+  previewPath String?
   views       Int      @default(0)
-  isPublished Boolean  @default(true)
   isVip       Boolean  @default(false)
+  isPublished Boolean  @default(true)
   createdAt   DateTime @default(now())
-
-  personId    String?
-  person      Person?  @relation(fields: [personId], references: [id])
   authorId    String
   author      User     @relation(fields: [authorId], references: [id])
-  viewsLog    View[]
 }
 
-model View {
+model PollTag {
   id        String   @id @default(cuid())
-  videoId   String
-  video     Video    @relation(fields: [videoId], references: [id])
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id])
-  watchedAt DateTime @default(now())
-  progress  Int      @default(0) // %
-}
-
-model Subscription {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  plan        String   // WEEKLY, MONTHLY, QUARTERLY
-  startsAt    DateTime @default(now())
-  expiresAt   DateTime
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-}
-
-model PollOption {
-  id    String @id @default(cuid())
-  text  String @unique
-  votes Int    @default(0)
-}
-
-model PollVote {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id])
-  optionId   String
-  option     PollOption @relation(fields: [optionId], references: [id])
-  votedAt    DateTime @default(now())
-
-  @@unique([userId, optionId]) // 1 голос на пользователя
+  text      String
+  votes     Int      @default(1)
+  createdAt DateTime @default(now())
 }
 
 model Message {
   id        String   @id @default(cuid())
-  userId    String?
-  userName  String?
-  email     String?
+  name      String
+  email     String
   text      String
   createdAt DateTime @default(now())
-}
-
-model Settings {
-  id          String @id @default("site")
-  siteName    String @default("AI Video Platform")
-  supportText String @default("Поддержите проект ❤️")
-  vipPlans    Json   // [{id:"W", days:7, price:99}, ...]
 }
